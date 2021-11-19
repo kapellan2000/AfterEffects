@@ -166,17 +166,10 @@ class Prism_AfterEffects_Functions(object):
         s.connect(("localhost", 9888))
         s.send(script.encode("utf-8"))
         data = s.recv(1024)
-        #s.send("alert('hello');".encode("utf-8"))
+
         s.shutdown(2)
         s.close()
-    
-        #p = subprocess.Popen(
-        #    ["osascript"],
-        #    stdin=subprocess.PIPE,
-        #    stdout=subprocess.PIPE,
-        #    stderr=subprocess.PIPE,
-        #)
-        #stdout, stderr = p.communicate(script)
+
         if data == "null":
             return None
 
