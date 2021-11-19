@@ -41,7 +41,7 @@ class Prism_AfterEffects_Variables(object):
         self.hasQtParent = False
         self.sceneFormats = [".aep"]
         self.appSpecificFormats = self.sceneFormats
-        self.appColor = [180, 172, 50]
+        self.appColor = [200, 50, 50]
         self.appVersionPresets = ["13.0.0"]
         self.hasFrameRange = False
         self.canOverrideExecuteable = False
