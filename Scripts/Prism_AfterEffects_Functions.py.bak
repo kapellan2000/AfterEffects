@@ -161,16 +161,18 @@ class Prism_AfterEffects_Functions(object):
 
     @err_catcher(name=__name__)
     def executeAppleScript(self, script):
-        HOST = '127.0.0.1'
-        PORT = 9888
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((HOST, PORT))
-            #filepath = "teste"
-            #scpt = "app.project.path;"
-            #scpt = "alert('" + filepath + "');"
-            data = (script).encode("utf-8")
-            s.sendall(data)
-            data = s.recv(1024)
+    
+        s = socket.socket()
+        s.connect(("localhost", 9888))
+        s.send(script.encode("utf-8"))
+        data = s.recv(1024)
+
+        s.shutdown(2)
+        s.close()
+
+        if data == "null":
+            return None
+
         return data
 
     @err_catcher(name=__name__)
@@ -496,7 +498,6 @@ class Prism_AfterEffects_Functions(object):
         self.w_comment.setLayout(lo_comment)
         lo_comment.setContentsMargins(0, 0, 0, 0)
         lo_version = QHBoxLayout()
-        custom_version = QHBoxLayout()
         lo_extension = QHBoxLayout()
         lo_localOut = QHBoxLayout()
         l_task = QLabel("Task:")
@@ -511,18 +512,8 @@ class Prism_AfterEffects_Functions(object):
         self.chb_useNextVersion = QCheckBox("Use next version")
         self.chb_useNextVersion.setChecked(True)
         self.chb_useNextVersion.setMinimumWidth(110)
-        
-        self.custom_name = QCheckBox("custom task name")
-        self.custom_name.setChecked(False)
-        self.custom_name.setMinimumWidth(110)
         self.cb_versions = QComboBox()
         self.cb_versions.setEnabled(False)
-        self.cb_versions.setStyleSheet('''*    
-        QComboBox QAbstractItemView 
-            {
-            min-width: 300px;
-            }
-        ''')
         l_ext = QLabel("Format:")
         l_ext.setMinimumWidth(110)
         self.cb_formats = QComboBox()
@@ -536,10 +527,6 @@ class Prism_AfterEffects_Functions(object):
         lo_version.addWidget(self.chb_useNextVersion)
         lo_version.addWidget(self.cb_versions)
         lo_version.addStretch()
-        
-        custom_version.addWidget(self.custom_name)
-        custom_version.addWidget(self.cb_versions)
-        custom_version.addStretch()
         lo_extension.addWidget(l_ext)
         lo_extension.addWidget(self.cb_formats)
         lo_extension.addStretch()
@@ -547,11 +534,8 @@ class Prism_AfterEffects_Functions(object):
         lo_prismExport.addLayout(lo_task)
         lo_prismExport.addWidget(self.w_comment)
         lo_prismExport.addLayout(lo_version)
-        
-        lo_prismExport.addLayout(custom_version)
         lo_prismExport.addLayout(lo_extension)
         lo_prismExport.addLayout(lo_localOut)
-        self.w_task.setLayout(lo_prismExport)
         self.w_task.setLayout(lo_prismExport)
         lo_version.setContentsMargins(0, 0, 0, 0)
 

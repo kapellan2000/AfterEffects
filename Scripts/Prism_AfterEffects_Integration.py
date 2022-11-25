@@ -57,7 +57,8 @@ class Prism_AfterEffects_Integration(object):
         self.core = core
         self.plugin = plugin
 
-        self.examplePath, self.afVersion = self.getAfterEffectsPath()
+        #self.examplePath, self.afVersion = self.getAfterEffectsPath()
+        self.examplePath = "c:/Program Files/Common Files/Adobe/CEP/extensions/"
     @err_catcher(name=__name__)
     def getAfterEffectsPath(self, single=True):
         try:
@@ -103,6 +104,25 @@ class Prism_AfterEffects_Integration(object):
 
     def addIntegration(self, installPath):
         try:
+            #Enable debug mode 
+            parentKey = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER,
+                "SOFTWARE\\Adobe")
+            i = 0
+            while True:
+               try:
+                   key = _winreg.EnumKey(parentKey, i)
+                   print (key)
+                   i += 1
+                   if key[:5]=="CSXS.":
+                       key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER, 'SOFTWARE\\Adobe\\'+key)
+                       _winreg.SetValueEx(key, 'PlayerDebugMode', 0, _winreg.REG_SZ, '1')
+                       _winreg.CloseKey(key)
+
+
+               except WindowsError:
+                   break
+                    
+        
             if not os.path.exists(installPath):
                 QMessageBox.warning(
                     self.core.messageParent,
@@ -112,10 +132,7 @@ class Prism_AfterEffects_Integration(object):
                     QMessageBox.Ok,
                 )
                 return False
-
-            if int(str(installPath)[-4:])< 2019:
-                QMessageBox.warning(self.core.messageParent, "Prism Integration", "Unsupported version. Use AfterEffects 2019 or higher")
-                return ""
+ 
                 
             integrationBase = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)), "Integration"
@@ -125,51 +142,15 @@ class Prism_AfterEffects_Integration(object):
                 osName = "Windows"
             elif platform.system() == "Darwin":
                 osName = "Mac"
-
-
-            
-
-            for i in [
-                "Prism.jsx",
-
-            ]:
-                iconPath = os.path.join(
-                    self.core.prismRoot, "Scripts", "UserInterfacesPrism", i
-                    
-                )
-                origLFile = os.path.join(integrationBase,"Windows", "Prism.jsx")
-                scriptdir = os.path.join(installPath,"Support Files", "Scripts", "ScriptUI Panels", i)
-
-                if os.path.exists(scriptdir):
-                    os.remove(scriptdir)
-
-                shutil.copy2(origLFile, scriptdir)
                 
-                with open(scriptdir, "r") as init:
-                    initStr = init.read()
+            origLFile = os.path.join(integrationBase,"Windows")
+            scriptdir = os.path.join(installPath)
 
-                with open(scriptdir, "w") as init:
-                    initStr = initStr.replace(
-                        "PRISMROOT",  self.core.prismRoot.replace("/", "\\\\")
-                    )
-                    init.write(initStr)
-
-
-                confFile = "Adobe After Effects " + str(self.afVersion) + " Prefs.txt"
-                config = os.path.join(os.environ["appdata"],"Adobe", "After Effects", str(self.afVersion), confFile)
-
-                with open(config, "r") as initConf:
-                    initStrConf = initConf.read()
-
-                with open(config, "w") as initConf:
-                    initStrConf = initStrConf.replace(
-                        '"Pref_SCRIPTING_FILE_NETWORK_SECURITY" = "0', '"Pref_SCRIPTING_FILE_NETWORK_SECURITY" = "1'
-                    )
-                    initConf.write(initStrConf)
-
-
-
-
+            if os.path.exists(scriptdir+"/prism"):
+                os.remove(scriptdir+"/prism")
+            
+            #shutil.copy2(origLFile, scriptdir)
+            shutil.copytree(origLFile+"/prism", scriptdir+"/prism") 
 
             #if result is True:
             return True
