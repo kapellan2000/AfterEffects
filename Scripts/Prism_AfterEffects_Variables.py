@@ -29,11 +29,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Prism.  If not, see <https://www.gnu.org/licenses/>.
-
+import os
 
 class Prism_AfterEffects_Variables(object):
     def __init__(self, core, plugin):
-        self.version = "v1.3.0.0"
+        self.version = "v2.0.0.beta12"
         self.pluginName = "AfterEffects"
         self.pluginType = "App"
         self.appShortName = "AfterEffects"
@@ -46,3 +46,10 @@ class Prism_AfterEffects_Variables(object):
         self.hasFrameRange = False
         self.canOverrideExecuteable = False
         self.platforms = ["Windows", "Darwin"]
+        self.pluginDirectory = os.path.abspath(
+            os.path.dirname(os.path.dirname(__file__))
+        )
+        self.appIcon = os.path.join(
+            self.pluginDirectory, "UserInterfaces", "AE.ico"
+        )
+        

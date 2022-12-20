@@ -1,3 +1,4 @@
+
 (function () {
  'use strict';
  var path, slash;
@@ -10,17 +11,13 @@
 		slash = "/";
 		path = path.substring(8, path.length - 11);
 	}
-	//themeManager.init();
-	//var cs = new CSInterface();
-	
 	const net = require('net');
+	var csInterface = new CSInterface();
+
 	const server = net.createServer((socket) => {
 	  socket.on('data', (data) => {
-		var csInterface = new CSInterface();
 		
 		data = String(data)
-
-
 		csInterface.evalScript(data, (result) => {
 			if (result==""){
 				socket.write("null");
@@ -30,10 +27,6 @@
 			
 		});
 
-
-
-
-		
 	  });
 	});
 	server.maxConnections = 2;
@@ -44,14 +37,11 @@
 	}, 300);
 
 
-
-
-
  }());
 
 
 function generateButtons(){
-	const object = {'File Save...': 'Save Version.cmd', 'File Save comment...': 'Save Extended.cmd', 'Prism settings' : 'Settings.cmd', 'Project Browser' : 'Project Browser.cmd', 'State Manager' : 'Export.cmd'};
+	const object = {'File Save...': 'Save Version.cmd', 'File Save comment...': 'Save Extended.cmd', 'Prism settings' : 'Settings.cmd', 'Project Browser' : 'Project Browser.cmd', 'Export' : 'Export.cmd'};
 	var buttonHolder = document.getElementById("buttonHolder");
 	var thisButton;
 	var thisName;
@@ -59,10 +49,13 @@ function generateButtons(){
 
 		thisName = key
 		thisButton = document.createElement("BUTTON");
+		thisButton.style.color = "#8a8a8a";
+		thisButton.style.background = "#232323";
+		thisButton.style.width = '200px';
+		thisButton.style.marginTop = "2px";
 		thisButton.innerHTML = thisName;
 		thisButton.setAttribute("class", "scriptButton");
-		//thisButton.setAttribute("id", 1);
-		thisButton.setAttribute("path", "aaaa");
+		thisButton.setAttribute("path", "A");
 		thisButton.setAttribute("onclick", "buttonClick( '" + value + "' )");
 		buttonHolder.appendChild(thisButton);
 		var br = document.createElement("br");
@@ -74,19 +67,15 @@ function generateButtons(){
 
 function buttonClick(buttonElement){
 	
-	var root = 'C:\\Prism'
+	var root = 'c:\\Program Files\\Prism2'
 	var process = require('child_process');
 	var exec = process.exec;
 	var cmd = 'explorer '+root+'\\Plugins\\Apps\\AfterEffects\\'+buttonElement;
 
 	exec(cmd, function(err, stdout, stderr) {
-
 	});
 
 }
-
-
-
 
 
 

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ExtensionManifest
 	Version="5.0"
-	ExtensionBundleId="com.extension.testing"
+	ExtensionBundleId="com.extension.prism"
 	ExtensionBundleVersion="1.0.0"
-	ExtensionBundleName="Extension Testing"
+	ExtensionBundleName="Prism"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
 	<ExtensionList>
-		<Extension Id="com.extension.testing.panel" Version="1.0" />
+		<Extension Id="com.extension.prism.panel" Version="1.0" />
 	</ExtensionList>
 
 	<ExecutionEnvironment>
@@ -25,12 +25,11 @@
 </ExecutionEnvironment>
 
 	<DispatchInfoList>
-		<Extension Id="com.extension.testing.panel">
+		<Extension Id="com.extension.prism.panel">
 			<DispatchInfo>
 
 			<Resources>
 				<MainPath>./index.html</MainPath>
-				<ScriptPath>./jsx/aftereffects.jsx</ScriptPath>
 				<CEFCommandLine>
 				<Parameter>--enable-nodejs</Parameter>
 				<Parameter>--mixed-context</Parameter>

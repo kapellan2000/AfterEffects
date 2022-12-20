@@ -1,5 +1,5 @@
-echo off
+echo on
 CD /D "%~dp0"
 
-start ..\..\..\Python37\pythonw.exe .\Scripts\Prism_AfterEffects_MenuTools.py Export
-REM exit
+REM start ..\..\..\Python39\pythonw.exe .\Scripts\Prism_AfterEffects_MenuTools.py Export
+start ..\..\..\Python39\python.exe .\Scripts\Prism_AfterEffects_MenuTools.py Export

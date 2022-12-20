@@ -38,7 +38,10 @@ body {
 	background-color: red;
 	width: 400px;
 }
-
+.thisButton{
+  color:#fff;
+  background:blue;
+}
 /* Let's get this party started */
 ::-webkit-scrollbar {
     width: 13px;
