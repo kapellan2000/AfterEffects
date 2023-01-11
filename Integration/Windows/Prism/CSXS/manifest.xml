@@ -30,7 +30,6 @@
 
 			<Resources>
 				<MainPath>./index.html</MainPath>
-				<ScriptPath>./jsx/aftereffects.jsx</ScriptPath>
 				<CEFCommandLine>
 				<Parameter>--enable-nodejs</Parameter>
 				<Parameter>--mixed-context</Parameter>

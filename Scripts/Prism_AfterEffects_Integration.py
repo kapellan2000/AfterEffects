@@ -170,12 +170,10 @@ class Prism_AfterEffects_Integration(object):
 
     def removeIntegration(self, installPath):
         try:
-            for i in [
-                "Prism.jsx",
-            ]:
-                fPath = os.path.join(installPath, "Support Files", "Scripts", "ScriptUI Panels", i)
-                if os.path.exists(fPath):
-                    os.remove(fPath)
+
+            fPath = "C:/Program Files/Common Files/Adobe/CEP/extensions/prism"
+            if os.path.exists(fPath):
+                shutil.rmtree(fPath)
 
             return True
         except Exception as e:
