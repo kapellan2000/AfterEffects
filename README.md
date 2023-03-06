@@ -8,7 +8,7 @@ Script use 9888 port
 # Installation
 1. Download
 2. Unzip
-3. copy to c:\Program Files\Prism2\Plugins\Apps\AfterEffects
+3. copy to c:\ProgramData\Prism2\Plugins\AfterEffects (new path!!!)
 4. go Prism User Settings>DCC apps>AfterEffects>Add
 5. Select AfterEffects CEP extensions folder
 6. Run After Effects
