@@ -150,6 +150,7 @@ class Prism_AfterEffects_Integration(object):
                 os.remove(scriptdir+"/prism")
             
             #shutil.copy2(origLFile, scriptdir)
+            print(origLFile+"/prism")
             shutil.copytree(origLFile+"/prism", scriptdir+"/prism") 
 
             #if result is True:

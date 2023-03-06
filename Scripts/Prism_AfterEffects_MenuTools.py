@@ -34,10 +34,10 @@
 import os
 import sys
 import platform
-
-prismRoot = os.path.abspath(
-    os.path.join(__file__, os.pardir, os.pardir, os.pardir, os.pardir, os.pardir)
-)
+prismRoot = "C:/Program Files/Prism2"
+#prismRoot = os.path.abspath(
+#    os.path.join(__file__, os.pardir, os.pardir, os.pardir, os.pardir, os.pardir)
+#)
 
 sys.path.insert(0, os.path.join(prismRoot, "Scripts"))
 import PrismCore

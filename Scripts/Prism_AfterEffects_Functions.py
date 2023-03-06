@@ -57,7 +57,6 @@ class Prism_AfterEffects_Functions(object):
         self.plugin = plugin
         self.win = platform.system() == "Windows"
         self.callbacks = []
-        #self.registerCallbacks()
 
     @err_catcher(name=__name__)
 #    def registerCallbacks(self):
@@ -66,14 +65,13 @@ class Prism_AfterEffects_Functions(object):
     @err_catcher(name=__name__)
     def startup(self, origin):
         origin.timer.stop()
-
+        print("TTTTTTTT")
+        print(self.pluginPath)
+        root = os.path.dirname(self.pluginPath).replace("\\", "/").split("Scripts")[0]
         with (
             open(
                 os.path.join(
-                    self.core.prismRoot,
-                    "Plugins",
-                    "Apps",
-                    "AfterEffects",
+                    root,
                     "UserInterfaces",
                     "AfterEffectsStyleSheet",
                     "AfterEffects.qss",
@@ -86,10 +84,7 @@ class Prism_AfterEffects_Functions(object):
         ssheet = ssheet.replace(
             "qss:",
             os.path.join(
-                self.core.prismRoot,
-                "Plugins",
-                "Apps",
-                "AfterEffects",
+                root,
                 "UserInterfaces",
                 "AfterEffectsStyleSheet",
             ).replace("\\", "/")
@@ -102,7 +97,7 @@ class Prism_AfterEffects_Functions(object):
         qApp.setStyleSheet(ssheet)
         appIcon = QIcon(
             os.path.join(
-                self.core.prismRoot, "Scripts", "UserInterfacesPrism", "p_tray.png"
+                root, "Scripts", "UserInterfacesPrism", "p_tray.png"
             )
         )
         qApp.setWindowIcon(appIcon)
@@ -139,7 +134,7 @@ class Prism_AfterEffects_Functions(object):
             self.executeAppleScript(scpt)
 
         return False
-
+        
     @err_catcher(name=__name__)
     def onProjectChanged(self, origin):
         pass
@@ -175,8 +170,7 @@ class Prism_AfterEffects_Functions(object):
         
         try:
             scpt = "app.project.file.fsName;" #fsName name
-            print(self.executeAppleScript(scpt))
-            print(">>>>>")
+
             currentFileName = str(self.executeAppleScript(scpt))[2:][:-3].replace("\\\\","/")
             
             if path:
@@ -345,19 +339,28 @@ class Prism_AfterEffects_Functions(object):
 
     @err_catcher(name=__name__)
     def AfterEffectsImportSource(self, origin):
+        sourceData = origin.compGetImportSource()
+        print(sourceData)
+        print(sourceData[0])
+        for i in sourceData:
+            filePath = os.path.dirname(i[0])
+            firstFrame = i[1]
+            lastFrame = i[2]
 
-        mpb = origin.mediaPlaybacks["shots"]
-        sourceFolder = os.path.dirname(
-            os.path.join(mpb["basePath"], mpb["seq"][0])
-        ).replace("\\", "/")
-        try:
-                scpt ="app.project.setDefaultImportFolder(Folder('" + sourceFolder + "'));app.project.importFileWithDialog();app.project.setDefaultImportFolder();"
-                name = self.executeAppleScript(scpt)
-                if name is None:
-                    raise
-        except:
-            self.core.popup(" Error  107.")
-            return False
+            #mpb = origin.mediaPlayer.seq
+        
+            #mpb = origin.mediaPlaybacks["shots"]
+            #sourceFolder = os.path.dirname(
+            #    os.path.join(mpb["basePath"], mpb["seq"][0])
+            #).replace("\\", "/")
+            try:
+                    scpt ="app.project.setDefaultImportFolder(Folder('" + filePath + "'));app.project.importFileWithDialog();app.project.setDefaultImportFolder();"
+                    name = self.executeAppleScript(scpt)
+                    if name is None:
+                        raise
+            except:
+                self.core.popup(" Error  107.")
+                return False
 
 
             # curReadNode = AfterEffects.createNode("Read",'file %s first %s last %s' % (filePath,firstFrame,lastFrame),False)
@@ -474,10 +477,7 @@ class Prism_AfterEffects_Functions(object):
             return False
 
         curfile = self.core.getCurrentFileName()
-        print(curfile)
         fname = self.core.getScenefileData(curfile)
-        print(fname)
-        print("#######")
         if fname["filename"] == "invalid":
             entityType = "context"
         else:
@@ -673,18 +673,19 @@ class Prism_AfterEffects_Functions(object):
                     os.pardir,
                     os.pardir,
                     os.pardir,
-                    "Rendering",
+                    "Renders",
                     "2dRender",
                     self.le_task.text(),
                 )
             )
             if hVersion == "":
                 hVersion = self.core.getHighestVersion(outputPath)
-
+                if hVersion == None:
+                    hVersion = fnameData["version"]
             outputFile = os.path.join(
                 "shot"
                 + "_"
-                + fnameData["entityName"]
+                + fnameData["shot"]
                 + "_"
                 + self.le_task.text()
                 + "_"
@@ -692,21 +693,17 @@ class Prism_AfterEffects_Functions(object):
                 + extension
             )
         elif fnameData["type"] == "asset":
-            #base = self.core.getEntityBasePath(fileName)
             base = self.core.getAssetPath()
             outputPath = os.path.abspath(
                 os.path.join(
                     base,
-                    "Rendering",
+                    "Renders",
                     "2dRender",
                     self.le_task.text(),
                 )
             )
             if hVersion == "":
                 hVersion = self.core.getHighestVersion(outputPath)
-                print("!!!!!!!1")
-                print(hVersion)
-            print(fnameData)
             outputFile = os.path.join(
                 fnameData["asset_path"]
                 + "_"
@@ -783,12 +780,6 @@ class Prism_AfterEffects_Functions(object):
                 filepath=os.path.dirname(outputPath),
                 details=details,
             )
-
-            #self.core.saveVersionInfo(
-            #    location=os.path.dirname(outputPath),
-            #    version=hVersion,
-            #    origin=self.core.getCurrentFileName(),
-            #)
         else:
             startLocation = os.path.join(
                 self.core.projectPath,
