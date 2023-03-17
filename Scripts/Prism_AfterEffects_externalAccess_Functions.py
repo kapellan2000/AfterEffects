@@ -55,6 +55,7 @@ class Prism_AfterEffects_externalAccess_Functions(object):
         self.core.registerCallback(
             "openPBFileContextMenu", self.openPBFileContextMenu, plugin=self.plugin
         )
+        self.core.registerCallback("getPresetScenes", self.getPresetScenes, plugin=self.plugin)
     @err_catcher(name=__name__)
     def getAutobackPath(self, origin, tab):
         autobackpath = ""
@@ -74,8 +75,6 @@ class Prism_AfterEffects_externalAccess_Functions(object):
         #infAct.triggered.connect(self.getAppVersion)
         #rcmenu.addAction(infAct)
         #rcmenu.exec_()
-        print(self.core.appPlugin.pluginName)
-        print("!!!!")
         if self.core.appPlugin.pluginName == "AfterEffects":
 
             #rcmenu = QMenu(origin.sceneBrowser)
@@ -153,3 +152,7 @@ class Prism_AfterEffects_externalAccess_Functions(object):
             "Prism_AfterEffects_MenuTools.py",
         )
         subprocess.Popen([pythonPath, menuPath, "Tools", filepath])
+    def getPresetScenes(self, presetScenes):
+        presetDir = os.path.join(self.pluginDirectory, "Presets")
+        scenes = self.core.entities.getPresetScenesFromFolder(presetDir)
+        presetScenes += scenes

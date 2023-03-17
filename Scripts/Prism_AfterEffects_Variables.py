@@ -44,7 +44,7 @@ class Prism_AfterEffects_Variables(object):
         self.appColor = [200, 50, 50]
         self.appVersionPresets = ["13.0.0"]
         self.hasFrameRange = False
-        self.canOverrideExecuteable = False
+        #self.canOverrideExecuteable = False
         self.platforms = ["Windows", "Darwin"]
         self.pluginDirectory = os.path.abspath(
             os.path.dirname(os.path.dirname(__file__))

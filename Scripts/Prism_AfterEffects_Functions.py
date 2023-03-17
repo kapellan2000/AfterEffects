@@ -65,8 +65,6 @@ class Prism_AfterEffects_Functions(object):
     @err_catcher(name=__name__)
     def startup(self, origin):
         origin.timer.stop()
-        print("TTTTTTTT")
-        print(self.pluginPath)
         root = os.path.dirname(self.pluginPath).replace("\\", "/").split("Scripts")[0]
         with (
             open(
@@ -97,7 +95,7 @@ class Prism_AfterEffects_Functions(object):
         qApp.setStyleSheet(ssheet)
         appIcon = QIcon(
             os.path.join(
-                root, "Scripts", "UserInterfacesPrism", "p_tray.png"
+                self.core.prismRoot, "Scripts", "UserInterfacesPrism", "p_tray.png"
             )
         )
         qApp.setWindowIcon(appIcon)
@@ -163,6 +161,7 @@ class Prism_AfterEffects_Functions(object):
             data = (script).encode("utf-8")
             s.sendall(data)
             data = s.recv(1024)
+
         return data
 
     @err_catcher(name=__name__)
