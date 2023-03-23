@@ -137,7 +137,7 @@ class Prism_AfterEffects_externalAccess_Functions(object):
     @err_catcher(name=__name__)
     def customizeExecutable(self, origin, appPath, filepath):
         self.connectToAfterEffects(origin, filepath=filepath)
-        return True
+        return False
 
     @err_catcher(name=__name__)
     def connectToAfterEffects(self, origin, filepath=""):
