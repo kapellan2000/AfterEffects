@@ -177,7 +177,8 @@ class Prism_AfterEffects_Functions(object):
     def getCurrentFileName(self, origin, path=True):
         try:
             scpt = "app.project.file.fsName;" #fsName name
-            currentFileName = str(self.executeAppleScript(scpt))[2:][:-3].replace("\\\\","/")
+            file_name, file_extension = os.path.splitext(self.executeAppleScript(scpt))
+            currentFileName = str(file_name)[2:].replace("\\\\","/")
             if path:
                 return currentFileName
             else:
