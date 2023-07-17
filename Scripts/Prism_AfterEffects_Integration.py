@@ -122,7 +122,7 @@ class Prism_AfterEffects_Integration(object):
                except WindowsError:
                    break
                     
-        
+            cmds = []
             if not os.path.exists(installPath):
                 QMessageBox.warning(
                     self.core.messageParent,
@@ -138,23 +138,66 @@ class Prism_AfterEffects_Integration(object):
                 os.path.dirname(os.path.dirname(__file__)), "Integration"
             )
 
-            if platform.system() == "Windows":
-                osName = "Windows"
-            elif platform.system() == "Darwin":
-                osName = "Mac"
-                
-            origLFile = os.path.join(integrationBase,"Windows")
-            scriptdir = os.path.join(installPath)
 
-            if os.path.exists(scriptdir+"/prism"):
-                os.remove(scriptdir+"/prism")
+            cmds = []
+            origLFile = os.path.join(integrationBase,"Windows", "prism.aep")
+            scriptdir = os.path.join(installPath, "prism.aep")
+            d_css = os.path.join(scriptdir,"css")
+            d_csxs = os.path.join(scriptdir,"CSXS")
+            d_js = os.path.join(scriptdir,"js")
+            d_libs = os.path.join(scriptdir,"js","libs")
             
-            #shutil.copy2(origLFile, scriptdir)
-            print(origLFile+"/prism")
-            shutil.copytree(origLFile+"/prism", scriptdir+"/prism") 
+            if os.path.exists(scriptdir):
+                cmd = {
+                        "type": "removeFile",
+                        "args": [scriptdir],
+                        "validate": False,
+                    }
+                cmds.append(cmd) 
+            for i in [scriptdir,d_css,d_csxs,d_js,d_libs]:
+                cmd = {"type": "createFolder", "args": [i]}
+                cmds.append(cmd)
+            source = os.path.join(origLFile,"index.html")    
+            cmd = {"type": "copyFile", "args": [source, scriptdir]}
+            cmds.append(cmd)  
+            
+            source = os.path.join(origLFile,"css","style.css")
+            cmd = {"type": "copyFile", "args": [source, d_css]}
+            cmds.append(cmd)
+            
+            source = os.path.join(origLFile,"CSXS","manifest.xml")
+            cmd = {"type": "copyFile", "args": [source, d_csxs]}
+            cmds.append(cmd)
+            
+            source = os.path.join(origLFile,"js","main.js")
+            cmd = {"type": "copyFile", "args": [source, d_js]}
+            cmds.append(cmd)
+            
+            source = os.path.join(origLFile,"js","themeManager.js")
+            cmd = {"type": "copyFile", "args": [source, d_js]}
+            cmds.append(cmd)    
+            
+            source = os.path.join(origLFile,"js","libs","CSInterface.js")
+            cmd = {"type": "copyFile", "args": [source, d_libs]}
+            cmds.append(cmd)               
 
-            #if result is True:
-            return True
+
+
+
+
+                
+            #origLFile = os.path.join(integrationBase,"Windows")
+            #scriptdir = os.path.join(installPath)
+
+            #if os.path.exists(scriptdir+"/prism"):
+                #os.remove(scriptdir+"/prism")
+            #    cmd = {"type": "removeFile", "args": [scriptdir+"/prism"], "validate": False}
+            #    cmds.append(cmd)
+            #shutil.copy2(origLFile, scriptdir)
+
+
+            result = self.core.runFileCommands(cmds)
+            return result
             #else:
             #    raise Exception(result)
 

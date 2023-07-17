@@ -1,13 +1,4 @@
-@font-face {
-    font-family: "Montserrat";
-    font-weight: 200;
-    font-style: normal;
-    src: url("Montserrat-Regular.ttf") format('truetype');
-}
 
-* {
-	font-family: Montserrat;
-}
 
 html {
 	overflow-x: hidden;
