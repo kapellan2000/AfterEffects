@@ -49,6 +49,13 @@ class Prism_AfterEffects_externalAccess_Functions(object):
     def __init__(self, core, plugin):
         self.core = core
         self.plugin = plugin
+        self.core.registerCallback(
+            "projectBrowser_loadUI", self.projectBrowser_loadUI, plugin=self.plugin
+        )
+        self.core.registerCallback(
+            "openPBFileContextMenu", self.openPBFileContextMenu, plugin=self.plugin
+        )
+        self.core.registerCallback("getPresetScenes", self.getPresetScenes, plugin=self.plugin)
     @err_catcher(name=__name__)
     def getAutobackPath(self, origin, tab):
         autobackpath = ""
@@ -67,15 +74,57 @@ class Prism_AfterEffects_externalAccess_Functions(object):
         #infAct = QAction("Show version info", origin.lw_version)
         #infAct.triggered.connect(self.getAppVersion)
         #rcmenu.addAction(infAct)
-        #print("WWWWW")
         #rcmenu.exec_()
-        if self.core.appPlugin.pluginName == "Standalone":
+        if self.core.appPlugin.pluginName == "AfterEffects":
+
+            #rcmenu = QMenu(origin.sceneBrowser)
+            #pastAE = QAction("AE", origin)
+            #past.triggered.connect(self.pastefile)
+            #rcmenu.addAction(pastAE)
+
+            
             psMenu = QMenu("AfterEffects")
             psAction = QAction("Connect", origin)
             psAction.triggered.connect(lambda: self.connectToAfterEffects(origin))
             psMenu.addAction(psAction)
             origin.menuTools.insertSeparator(origin.menuTools.actions()[-2])
             origin.menuTools.insertMenu(origin.menuTools.actions()[-2], psMenu)
+            
+    def openPBFileContextMenu(self, origin, menu, filepath):
+        ext = os.path.splitext(filepath)[1]
+        if ext == ".aep":
+            
+            #pmenu = QMenu("AE", origin)
+            
+            #data = self.core.entities.getScenefileData(filepath)
+            #entity = data.get("type")
+            #if entity:
+            #    action = QAction("Set as %s preview" % entity, origin)
+            #    action.triggered.connect(lambda: self.setAsPreview(origin, filepath))
+            #    pmenu.addAction(action)
+
+            #    action = QAction("Export...", origin)
+            #    action.triggered.connect(lambda: self.exportDlg(filepath))
+            #    pmenu.addAction(action)
+
+            #menu.insertMenu(menu.actions()[0], pmenu)
+            data = self.core.entities.getScenefileData(filepath)
+            entity = data.get("type")
+            if entity:
+                action = QAction("Import aep" , origin)
+                action.triggered.connect(lambda: self.aepImport(origin, filepath))
+                menu.addAction(action)
+                
+    def aepImport(self, origin, path):
+        import Prism_AfterEffects_Functions
+        path = path.replace("\\", "/")
+        scpt ="app.project.importFile(new ImportOptions(File('"+path+"')));"
+        Prism_AfterEffects_Functions.Prism_AfterEffects_Functions.executeAppleScript(origin, scpt)
+        #with self.core.waitPopup(self.core, "Creating preview. Please wait..."):
+        #    entity = self.core.entities.getScenefileData(path)
+        #    previewImg = self.getImageFromScene(path)
+        #    self.core.entities.setEntityPreview(entity, previewImg)
+        #    origin.refreshEntityInfo()
 
     @err_catcher(name=__name__)
 #    def openPBListContextMenu(self, origin, rcmenu, listWidget, item, path):
@@ -88,7 +137,7 @@ class Prism_AfterEffects_externalAccess_Functions(object):
     @err_catcher(name=__name__)
     def customizeExecutable(self, origin, appPath, filepath):
         self.connectToAfterEffects(origin, filepath=filepath)
-        return True
+        return False
 
     @err_catcher(name=__name__)
     def connectToAfterEffects(self, origin, filepath=""):
@@ -103,3 +152,7 @@ class Prism_AfterEffects_externalAccess_Functions(object):
             "Prism_AfterEffects_MenuTools.py",
         )
         subprocess.Popen([pythonPath, menuPath, "Tools", filepath])
+    def getPresetScenes(self, presetScenes):
+        presetDir = os.path.join(self.pluginDirectory, "Presets")
+        scenes = self.core.entities.getPresetScenesFromFolder(presetDir)
+        presetScenes += scenes

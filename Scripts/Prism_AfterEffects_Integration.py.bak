@@ -229,11 +229,12 @@ class Prism_AfterEffects_Integration(object):
                             "args": [os.path.join(root, filename)],
                             "validate": False,
                         }
-                    cmds.append(cmd)
+            print(cmd)
+            cmds.append(cmd)
             
 
-            #if os.path.exists(fPath):
-            #    os.remove(fPath)
+            if os.path.exists(fPath):
+                os.remove(fPath)
             result = self.core.runFileCommands(cmds)
             
             return True

@@ -57,7 +57,6 @@ class Prism_AfterEffects_Functions(object):
         self.plugin = plugin
         self.win = platform.system() == "Windows"
         self.callbacks = []
-        #self.registerCallbacks()
 
     @err_catcher(name=__name__)
 #    def registerCallbacks(self):
@@ -66,14 +65,11 @@ class Prism_AfterEffects_Functions(object):
     @err_catcher(name=__name__)
     def startup(self, origin):
         origin.timer.stop()
-
+        root = os.path.dirname(self.pluginPath).replace("\\", "/").split("Scripts")[0]
         with (
             open(
                 os.path.join(
-                    self.core.prismRoot,
-                    "Plugins",
-                    "Apps",
-                    "AfterEffects",
+                    root,
                     "UserInterfaces",
                     "AfterEffectsStyleSheet",
                     "AfterEffects.qss",
@@ -86,10 +82,7 @@ class Prism_AfterEffects_Functions(object):
         ssheet = ssheet.replace(
             "qss:",
             os.path.join(
-                self.core.prismRoot,
-                "Plugins",
-                "Apps",
-                "AfterEffects",
+                root,
                 "UserInterfaces",
                 "AfterEffectsStyleSheet",
             ).replace("\\", "/")
@@ -139,7 +132,7 @@ class Prism_AfterEffects_Functions(object):
             self.executeAppleScript(scpt)
 
         return False
-
+        
     @err_catcher(name=__name__)
     def onProjectChanged(self, origin):
         pass
@@ -165,20 +158,20 @@ class Prism_AfterEffects_Functions(object):
         PORT = 9888
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, PORT))
-            #filepath = "teste"
-            #scpt = "app.project.path;"
-            #scpt = "alert('" + filepath + "');"
             data = (script).encode("utf-8")
             s.sendall(data)
             data = s.recv(1024)
+
         return data
 
     @err_catcher(name=__name__)
     def getCurrentFileName(self, origin, path=True):
         try:
             scpt = "app.project.file.fsName;" #fsName name
+    
             file_name, file_extension = os.path.splitext(self.executeAppleScript(scpt))
             currentFileName = str(file_name)[2:].replace("\\\\","/")
+            
             if path:
                 return currentFileName
             else:
@@ -190,10 +183,10 @@ class Prism_AfterEffects_Functions(object):
 
     @err_catcher(name=__name__)
     def getSceneExtension(self, origin):
+        print(origin)
         doc = self.core.getCurrentFileName()
         if doc != "":
             return os.path.splitext(doc)[1]
-
         return self.sceneFormats[0]
 
     @err_catcher(name=__name__)
@@ -225,8 +218,9 @@ class Prism_AfterEffects_Functions(object):
 
     @err_catcher(name=__name__)
     def saveScene(self, origin, filepath, details={}):
-        try:
+        try:    
                 scpt ="app.project.save(File('"+filepath+"'));"
+                print(filepath)
                 name = self.executeAppleScript(scpt)
                 if name is None:
                     raise
@@ -345,19 +339,28 @@ class Prism_AfterEffects_Functions(object):
 
     @err_catcher(name=__name__)
     def AfterEffectsImportSource(self, origin):
+        sourceData = origin.compGetImportSource()
+        print(sourceData)
+        print(sourceData[0])
+        for i in sourceData:
+            filePath = os.path.dirname(i[0])
+            firstFrame = i[1]
+            lastFrame = i[2]
 
-        mpb = origin.mediaPlaybacks["shots"]
-        sourceFolder = os.path.dirname(
-            os.path.join(mpb["basePath"], mpb["seq"][0])
-        ).replace("\\", "/")
-        try:
-                scpt ="app.project.setDefaultImportFolder(Folder('" + sourceFolder + "'));app.project.importFileWithDialog();app.project.setDefaultImportFolder();"
-                name = self.executeAppleScript(scpt)
-                if name is None:
-                    raise
-        except:
-            self.core.popup(" Error  107.")
-            return False
+            #mpb = origin.mediaPlayer.seq
+        
+            #mpb = origin.mediaPlaybacks["shots"]
+            #sourceFolder = os.path.dirname(
+            #    os.path.join(mpb["basePath"], mpb["seq"][0])
+            #).replace("\\", "/")
+            try:
+                    scpt ="app.project.setDefaultImportFolder(Folder('" + filePath + "'));app.project.importFileWithDialog();app.project.setDefaultImportFolder();"
+                    name = self.executeAppleScript(scpt)
+                    if name is None:
+                        raise
+            except:
+                self.core.popup(" Error  107.")
+                return False
 
 
             # curReadNode = AfterEffects.createNode("Read",'file %s first %s last %s' % (filePath,firstFrame,lastFrame),False)
@@ -475,11 +478,10 @@ class Prism_AfterEffects_Functions(object):
 
         curfile = self.core.getCurrentFileName()
         fname = self.core.getScenefileData(curfile)
-
-        if fname["entity"] == "invalid":
+        if fname["filename"] == "invalid":
             entityType = "context"
         else:
-            entityType = fname["entity"]
+            entityType = fname["filename"]
 
         self.dlg_export = QDialog()
         self.core.parentWindow(self.dlg_export)
@@ -643,7 +645,6 @@ class Prism_AfterEffects_Functions(object):
         self.cb_versions.clear()
         self.cb_versions.addItems(existingVersions)
 
-    @err_catcher(name=__name__)
     def exportGetOutputName(self, useVersion="next"):
         if self.le_task.text() == "":
             return
@@ -664,7 +665,7 @@ class Prism_AfterEffects_Functions(object):
             pComment = useVersion.split(self.core.filenameSeparator)[1]
 
         fnameData = self.core.getScenefileData(fileName)
-        if fnameData["entity"] == "shot":
+        if fnameData["type"] == "shot":
             outputPath = os.path.abspath(
                 os.path.join(
                     fileName,
@@ -672,39 +673,39 @@ class Prism_AfterEffects_Functions(object):
                     os.pardir,
                     os.pardir,
                     os.pardir,
-                    "Rendering",
+                    "Renders",
                     "2dRender",
                     self.le_task.text(),
                 )
             )
             if hVersion == "":
-                hVersion = self.core.getHighestTaskVersion(outputPath)
-
+                hVersion = self.core.getHighestVersion(outputPath)
+                if hVersion == None:
+                    hVersion = fnameData["version"]
             outputFile = os.path.join(
                 "shot"
                 + "_"
-                + fnameData["entityName"]
+                + fnameData["shot"]
                 + "_"
                 + self.le_task.text()
                 + "_"
                 + hVersion
                 + extension
             )
-        elif fnameData["entity"] == "asset":
-            base = self.core.getEntityBasePath(fileName)
+        elif fnameData["type"] == "asset":
+            base = self.core.getAssetPath()
             outputPath = os.path.abspath(
                 os.path.join(
                     base,
-                    "Rendering",
+                    "Renders",
                     "2dRender",
                     self.le_task.text(),
                 )
             )
             if hVersion == "":
-                hVersion = self.core.getHighestTaskVersion(outputPath)
-
+                hVersion = self.core.getHighestVersion(outputPath)
             outputFile = os.path.join(
-                fnameData["entityName"]
+                fnameData["asset_path"]
                 + "_"
                 + self.le_task.text()
                 + "_"
@@ -769,11 +770,15 @@ class Prism_AfterEffects_Functions(object):
 
             if not os.path.exists(outputDir):
                 os.makedirs(outputDir)
+            
+            details = {
+                "version": hVersion,
+                "sourceScene": self.core.getCurrentFileName(),
+            }
 
             self.core.saveVersionInfo(
-                location=os.path.dirname(outputPath),
-                version=hVersion,
-                origin=self.core.getCurrentFileName(),
+                filepath=os.path.dirname(outputPath),
+                details=details,
             )
         else:
             startLocation = os.path.join(
