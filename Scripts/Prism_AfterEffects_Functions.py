@@ -528,7 +528,7 @@ class Prism_AfterEffects_Functions(object):
         l_ext.setMinimumWidth(110)
         self.cb_formats = QComboBox()
         #self.cb_formats.addItems([".mp4", ".jpg", ".png", ".tif", ".exr"])
-        self.cb_formats.addItems([".mp4"])
+        self.cb_formats.addItems([""])
         self.chb_localOutput = QCheckBox("Local output")
         lo_task.addWidget(l_task)
         lo_task.addWidget(self.le_task)
