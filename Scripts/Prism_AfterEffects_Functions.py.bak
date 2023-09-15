@@ -751,10 +751,10 @@ class Prism_AfterEffects_Functions(object):
             if outputPath == "":
                 return
 
-        #QMessageBox.warning(
-        #    self.core.messageParent,
-        #    "Export",outputPath.replace("\\","//")
-        #)
+        QMessageBox.warning(
+            self.core.messageParent,
+            "Export",outputPath.replace("\\","//")
+        )
 
 
         ext = os.path.splitext(outputPath)[1].lower()
