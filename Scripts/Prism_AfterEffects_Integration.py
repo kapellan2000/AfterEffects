@@ -35,13 +35,10 @@ import sys
 import platform
 import shutil
 
-try:
-    from PySide2.QtCore import *
-    from PySide2.QtGui import *
-    from PySide2.QtWidgets import *
-except:
-    from PySide.QtCore import *
-    from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
+
 
 if platform.system() == "Windows":
     if sys.version[0] == "3":
@@ -213,29 +210,14 @@ class Prism_AfterEffects_Integration(object):
             return False
 
     def removeIntegration(self, installPath):
-        print(installPath)
         try:
+            for i in [
+                "Prism.jsx",
+            ]:
+                fPath = os.path.join(installPath, "Support Files", "Scripts", "ScriptUI Panels", i)
+                if os.path.exists(fPath):
+                    os.remove(fPath)
 
-            fPath = os.path.join(installPath, "prism.aep")
-            
-            cmds = []
-
-
-            file_paths = []
-            for root, directories, files in os.walk(fPath):
-                for filename in files:
-                    cmd = {
-                            "type": "removeFile",
-                            "args": [os.path.join(root, filename)],
-                            "validate": False,
-                        }
-                    cmds.append(cmd)
-            
-
-            #if os.path.exists(fPath):
-            #    os.remove(fPath)
-            result = self.core.runFileCommands(cmds)
-            
             return True
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()

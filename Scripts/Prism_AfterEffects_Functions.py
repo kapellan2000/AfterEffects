@@ -37,13 +37,9 @@ import platform
 import subprocess
 import socket
 
-try:
-    from PySide2.QtCore import *
-    from PySide2.QtGui import *
-    from PySide2.QtWidgets import *
-except:
-    from PySide.QtCore import *
-    from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 
 if platform.system() == "Windows":
     import win32com.client
@@ -171,9 +167,9 @@ class Prism_AfterEffects_Functions(object):
     
             file_name, file_extension = os.path.splitext(self.executeAppleScript(scpt))
             currentFileName = str(file_name)[2:].replace("\\\\","/")
-            
+            print("||||||",currentFileName,"|")
             if path:
-                return currentFileName
+                return currentFileName+".aep"
             else:
                 return currentFileName.split("\\")[-1:][0]
         except:
@@ -183,7 +179,6 @@ class Prism_AfterEffects_Functions(object):
 
     @err_catcher(name=__name__)
     def getSceneExtension(self, origin):
-        print(origin)
         doc = self.core.getCurrentFileName()
         if doc != "":
             return os.path.splitext(doc)[1]
@@ -220,7 +215,6 @@ class Prism_AfterEffects_Functions(object):
     def saveScene(self, origin, filepath, details={}):
         try:    
                 scpt ="app.project.save(File('"+filepath+"'));"
-                print(filepath)
                 name = self.executeAppleScript(scpt)
                 if name is None:
                     raise
@@ -340,6 +334,8 @@ class Prism_AfterEffects_Functions(object):
     @err_catcher(name=__name__)
     def AfterEffectsImportSource(self, origin):
         sourceData = origin.compGetImportSource()
+        print(sourceData)
+        print(sourceData[0])
         for i in sourceData:
             filePath = os.path.dirname(i[0])
             firstFrame = i[1]
@@ -527,8 +523,7 @@ class Prism_AfterEffects_Functions(object):
         l_ext = QLabel("Format:")
         l_ext.setMinimumWidth(110)
         self.cb_formats = QComboBox()
-        #self.cb_formats.addItems([".mp4", ".jpg", ".png", ".tif", ".exr"])
-        self.cb_formats.addItems([""])
+        self.cb_formats.addItems([".mp4", ".jpg", ".png", ".tif", ".exr"])
         self.chb_localOutput = QCheckBox("Local output")
         lo_task.addWidget(l_task)
         lo_task.addWidget(self.le_task)
@@ -557,13 +552,13 @@ class Prism_AfterEffects_Functions(object):
         self.w_task.setLayout(lo_prismExport)
         lo_version.setContentsMargins(0, 0, 0, 0)
 
-        #rb_custom = QRadioButton("Export to custom location")
+        rb_custom = QRadioButton("Export to custom location")
 
         self.b_export = QPushButton("Export")
 
         lo_export.addWidget(self.rb_task)
         lo_export.addWidget(self.w_task)
-        #lo_export.addWidget(rb_custom)
+        lo_export.addWidget(rb_custom)
         lo_export.addStretch()
         lo_export.addWidget(self.b_export)
 
@@ -648,35 +643,79 @@ class Prism_AfterEffects_Functions(object):
         if self.le_task.text() == "":
             return
 
-        task = self.le_task.text()
         extension = self.cb_formats.currentText()
         fileName = self.core.getCurrentFileName()
-        fnameData = self.core.getScenefileData(fileName)
 
-        if "type" not in fnameData:
+        if self.core.useLocalFiles:
+            if self.chb_localOutput.isChecked():
+                fileName = self.core.convertPath(fileName, target="local")
+            else:
+                fileName = self.core.convertPath(fileName, target="global")
+
+        hVersion = ""
+        pComment = self.le_comment.text()
+        if useVersion != "next":
+            hVersion = useVersion.split(self.core.filenameSeparator)[0]
+            pComment = useVersion.split(self.core.filenameSeparator)[1]
+
+        fnameData = self.core.getScenefileData(fileName)
+        if fnameData["type"] == "shot":
+            outputPath = os.path.abspath(
+                os.path.join(
+                    fileName,
+                    os.pardir,
+                    os.pardir,
+                    os.pardir,
+                    os.pardir,
+                    "Renders",
+                    "2dRender",
+                    self.le_task.text(),
+                )
+            )
+            if hVersion == "":
+                hVersion = self.core.getHighestVersion(outputPath)
+                if hVersion == None:
+                    hVersion = fnameData["version"]
+            outputFile = os.path.join(
+                "shot"
+                + "_"
+                + fnameData["shot"]
+                + "_"
+                + self.le_task.text()
+                + "_"
+                + hVersion
+                + extension
+            )
+        elif fnameData["type"] == "asset":
+            base = self.core.getAssetPath()
+            outputPath = os.path.abspath(
+                os.path.join(
+                    base,
+                    "Renders",
+                    "2dRender",
+                    self.le_task.text(),
+                )
+            )
+            if hVersion == "":
+                hVersion = self.core.getHighestVersion(outputPath)
+            outputFile = os.path.join(
+                fnameData["asset_path"]
+                + "_"
+                + self.le_task.text()
+                + "_"
+                + hVersion
+                + extension
+            )
+        else:
             return
 
-        if self.chb_localOutput.isChecked():
-            location = "local"
-        else:
-            location = "global"
+        outputPath = os.path.join(outputPath, hVersion)
+        if pComment != "":
+            outputPath += "_" + pComment
 
-        outputPathData = self.core.mediaProducts.generateMediaProductPath(
-            entity=fnameData,
-            task=task,
-            extension=extension,
-            comment=fnameData.get("comment", ""),
-            framePadding="",
-            version=useVersion if useVersion != "next" else None,
-            location=location,
-            returnDetails=True,
-            mediaType="2drenders",
-        )
+        outputName = os.path.join(outputPath, outputFile)
 
-        outputFolder = os.path.dirname(outputPathData["path"])
-        hVersion = outputPathData["version"]
-        
-        return outputPathData["path"], outputFolder, hVersion
+        return outputName, outputPath, hVersion
 
     @err_catcher(name=__name__)
     def exportVersionToggled(self, checked):
@@ -751,14 +790,8 @@ class Prism_AfterEffects_Functions(object):
             if outputPath == "":
                 return
 
-        #QMessageBox.warning(
-        #    self.core.messageParent,
-        #    "Export",outputPath.replace("\\","//")
-        #)
-
-
         ext = os.path.splitext(outputPath)[1].lower()
-        self.dlg_export.accept()
+
         scpt = """
         var resultFile = new File('""" + outputPath.replace("\\","//") + """')
         var renderQueue = app.project.renderQueue;

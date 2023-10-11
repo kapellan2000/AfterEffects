@@ -41,7 +41,15 @@
 
 
 function generateButtons(){
+	var debug = 1;
+	if (debug === 1) {
+		const object = {'File Save...': 'Save Version.cmd', 'File Save comment...': 'Save Extended.cmd', 'Prism settings' : 'Settings.cmd', 'Project Browser' : 'Project Browser.cmd', 'Export' : 'Export.cmd'};
+	} else {
+		
 	const object = {'File Save...': 'SaveVersion', 'File Save comment...': 'SaveComment', 'Prism settings' : 'Settings', 'Project Browser' : 'ProjectBrowser', 'Export' : 'Export'};
+	}
+	
+
 	var buttonHolder = document.getElementById("buttonHolder");
 	var thisButton;
 	var thisName;
@@ -65,15 +73,51 @@ function generateButtons(){
 	}
 }
 
-function buttonClick(argumentValue){
-	var pythonExePath = "C:/Program Files/Prism2/Python39/python.exe";
-	var scriptPath = "c:/ProgramData/Prism2/plugins/AfterEffects/Scripts/Prism_AfterEffects_MenuTools.py";
-	var command = '"' + pythonExePath + '" "' + scriptPath + '" "' + argumentValue + '"';
-	var exec = require('child_process').exec;
-	exec(command)
 
+
+
+function buttonClick(argumentValue){
+	var debug = 1;
+	if (debug === 1) {
+		
+		var root = 'C:\\ProgramData\\Prism2'
+		var process = require('child_process');
+		var exec = process.exec;
+		var cmd = 'explorer '+root+'\\plugins\\AfterEffects\\Integration\\dev\\'+buttonElement;
+
+		exec(cmd, function(err, stdout, stderr) {
+		});
+			
+		
+	} else {
+		var pythonExePath = "C:/Program Files/Prism2/Python39/python.exe";
+		var scriptPath = "c:/ProgramData/Prism2/plugins/AfterEffects/Scripts/Prism_AfterEffects_MenuTools.py";
+		var command = '"' + pythonExePath + '" "' + scriptPath + '" "' + argumentValue + '"';
+		var exec = require('child_process').exec;
+		exec(command)
+	}
 		
 }
+
+
+
+
+
+
+
+function buttonClick(buttonElement){
+	
+	var root = 'c:\\Program Files\\Prism2'
+	var process = require('child_process');
+	var exec = process.exec;
+	var cmd = 'explorer '+root+'\\Plugins\\Apps\\AfterEffects\\'+buttonElement;
+
+	exec(cmd, function(err, stdout, stderr) {
+	});
+
+}
+
+
 
 
 
