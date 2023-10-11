@@ -171,9 +171,9 @@ class Prism_AfterEffects_Functions(object):
     
             file_name, file_extension = os.path.splitext(self.executeAppleScript(scpt))
             currentFileName = str(file_name)[2:].replace("\\\\","/")
-            
+            print("||||||",currentFileName,"|")
             if path:
-                return currentFileName
+                return currentFileName+".aep"
             else:
                 return currentFileName.split("\\")[-1:][0]
         except:
@@ -183,7 +183,6 @@ class Prism_AfterEffects_Functions(object):
 
     @err_catcher(name=__name__)
     def getSceneExtension(self, origin):
-        print(origin)
         doc = self.core.getCurrentFileName()
         if doc != "":
             return os.path.splitext(doc)[1]
@@ -220,7 +219,6 @@ class Prism_AfterEffects_Functions(object):
     def saveScene(self, origin, filepath, details={}):
         try:    
                 scpt ="app.project.save(File('"+filepath+"'));"
-                print(filepath)
                 name = self.executeAppleScript(scpt)
                 if name is None:
                     raise
