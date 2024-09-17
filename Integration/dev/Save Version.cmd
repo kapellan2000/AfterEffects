@@ -1,5 +1,5 @@
 echo off
 CD /D "%~dp0"
 
-start ..\..\..\Python311\pythonw.exe .\Scripts\Prism_AfterEffects_MenuTools.py SaveVersion
+"C:/Program Files/Prism2/Python311/python.exe" "c:/ProgramData/Prism2/plugins/AfterEffects/Scripts/Prism_AfterEffects_MenuTools.py" SaveVersion
 exit
