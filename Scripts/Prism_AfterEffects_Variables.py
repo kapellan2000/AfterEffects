@@ -33,7 +33,7 @@ import os
 
 class Prism_AfterEffects_Variables(object):
     def __init__(self, core, plugin):
-        self.version = "v2.0.0.beta17.11"
+        self.version = "v2.0.10"
         self.pluginName = "AfterEffects"
         self.pluginType = "App"
         self.appShortName = "AfterEffects"
