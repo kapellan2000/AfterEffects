@@ -1,6 +1,6 @@
 # After Effects Prism App
 
-**Note: This plugin has been tested in Windows 10 + AfterEffects 2023 + prism v2.0.0.beta14.1
+**Note: This plugin has been tested in Windows 10 + AfterEffects 2023 + prism v2.0.10
 
 Rendering via Adobe media encoder.
 Script use 9888 port
