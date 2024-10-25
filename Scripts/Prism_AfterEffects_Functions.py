@@ -167,7 +167,7 @@ class Prism_AfterEffects_Functions(object):
     
             file_name, file_extension = os.path.splitext(self.executeAppleScript(scpt))
             currentFileName = str(file_name)[2:].replace("\\\\","/")
-            print("||||||",currentFileName,"|")
+
             if path:
                 return currentFileName+".aep"
             else:
@@ -509,9 +509,9 @@ class Prism_AfterEffects_Functions(object):
         self.chb_useNextVersion.setChecked(True)
         self.chb_useNextVersion.setMinimumWidth(110)
         
-        self.custom_name = QCheckBox("custom task name")
-        self.custom_name.setChecked(False)
-        self.custom_name.setMinimumWidth(110)
+        self.m_encoder = QCheckBox("use Media Encoder")
+        self.m_encoder.setChecked(True)
+        self.m_encoder.setMinimumWidth(110)
         self.cb_versions = QComboBox()
         self.cb_versions.setEnabled(False)
         self.cb_versions.setStyleSheet('''*    
@@ -534,7 +534,7 @@ class Prism_AfterEffects_Functions(object):
         lo_version.addWidget(self.cb_versions)
         lo_version.addStretch()
         
-        custom_version.addWidget(self.custom_name)
+        custom_version.addWidget(self.m_encoder)
         custom_version.addWidget(self.cb_versions)
         custom_version.addStretch()
         lo_extension.addWidget(l_ext)
@@ -554,11 +554,58 @@ class Prism_AfterEffects_Functions(object):
 
         rb_custom = QRadioButton("Export to custom location")
 
+        items = self.getShots()
+
+        self.tableWidget = QTableWidget()
+        self.tableWidget.setRowCount(len(items[0]))  # Установите количество строк
+        self.tableWidget.setColumnCount(3)  # Колонки: Название, Выпадающий список
+        self.tableWidget.setHorizontalHeaderLabels(["Shots", "Configs","Assign"])
+        self.tableWidget.setColumnWidth(0, 200)
+        self.tableWidget.setColumnWidth(1, 150)
+        self.tableWidget.setColumnWidth(2, 150)
+
+
+        self.configComboBoxes = []
+        
+
+        if isinstance(items[0], list):
+            for row, (name, values) in enumerate(items[0]):
+                item_name = QTableWidgetItem(name[0])
+                if name[1]:
+                    item_name.setForeground(QColor(0, 180, 0))
+                self.tableWidget.setItem(row, 0, item_name)
+                
+                comboBox = QComboBox()
+                comboBox.addItems(values)
+                
+                if row in self.shotList:
+                    comboBox.setCurrentIndex(self.shotList[row])
+                    
+                
+                self.tableWidget.setCellWidget(row, 1, comboBox)
+                self.configComboBoxes.append(comboBox)
+                #comboBox.currentIndexChanged.connect(lambda index, row=row: self.multiConfigSw(index, row))
+                
+                comboBox.currentIndexChanged.connect(lambda index, row=row: self.onComboBoxChanged(index, row))
+                if not name[1]:
+                    comboBoxAss = QComboBox()
+                    comboBoxAss.addItems(items[1])
+                    self.tableWidget.setCellWidget(row, 2, comboBoxAss)
+                    comboBoxAss.currentIndexChanged.connect(lambda index, row=row: self.onComboBoxAssChanged(index, row))
+                    
+
+
+
+
+
         self.b_export = QPushButton("Export")
 
         lo_export.addWidget(self.rb_task)
-        lo_export.addWidget(self.w_task)
         lo_export.addWidget(rb_custom)
+        lo_export.addWidget(self.tableWidget)
+        self.tableWidget.hide()
+        lo_export.addWidget(self.w_task)
+        
         lo_export.addStretch()
         lo_export.addWidget(self.b_export)
 
@@ -591,10 +638,18 @@ class Prism_AfterEffects_Functions(object):
 
     @err_catcher(name=__name__)
     def exportToggle(self, checked):
-        self.w_task.setEnabled(checked)
-
+        #self.w_task.setEnabled(checked)
+        #self.tableWidget.setVisible(checked)
+        if checked:
+            self.tableWidget.hide()
+        else:
+            self.tableWidget.show()
+            
     @err_catcher(name=__name__)
     def exportGetTasks(self):
+        
+        #"3d" "2d" "playblast"
+        print("!!!")
         self.taskList = self.core.getTaskNames("2d")
 
         if len(self.taskList) == 0:
@@ -603,8 +658,21 @@ class Prism_AfterEffects_Functions(object):
             if "_ShotCam" in self.taskList:
                 self.taskList.remove("_ShotCam")
 
+
+    def getShots(self):
+        _, shots = self.core.entities.getShots()
+        shotsNames = []
+        for data in shots:
+            print(data)
+            name = data['sequence'] + "_" + data['shot']
+            shotsNames.append(name)
+            
+        return shotsNames
+
     @err_catcher(name=__name__)
     def exportShowTasks(self):
+        print("!!!!@@")
+        self.getShots()
         tmenu = QMenu(self.dlg_export)
 
         for i in self.taskList:
@@ -621,7 +689,6 @@ class Prism_AfterEffects_Functions(object):
         outData = self.exportGetOutputName()
         if outData is not None:
             versionDir = os.path.dirname(outData[1])
-
             if os.path.exists(versionDir):
                 for i in reversed(sorted(os.listdir(versionDir))):
                     if len(i) < 5 or not i.startswith("v"):
@@ -637,85 +704,122 @@ class Prism_AfterEffects_Functions(object):
                     existingVersions.append(i)
 
         self.cb_versions.clear()
-        self.cb_versions.addItems(existingVersions)
+        #self.cb_versions.addItems(existingVersions)
+        print(outData[2])
+        self.cb_versions.addItems([outData[2]])
 
+    # def exportGetOutputName1(self, useVersion="next"):
+        # if self.le_task.text() == "":
+            # return
+
+        # extension = self.cb_formats.currentText()
+        # fileName = self.core.getCurrentFileName()
+
+        # if self.core.useLocalFiles:
+            # if self.chb_localOutput.isChecked():
+                # fileName = self.core.convertPath(fileName, target="local")
+            # else:
+                # fileName = self.core.convertPath(fileName, target="global")
+
+        # hVersion = ""
+        # pComment = self.le_comment.text()
+        # if useVersion != "next":
+            # hVersion = useVersion.split(self.core.filenameSeparator)[0]
+            # pComment = useVersion.split(self.core.filenameSeparator)[1]
+        # fnameData = self.core.getScenefileData(fileName)
+        # if fnameData["type"] == "shot":
+            # outputPath = os.path.abspath(
+                # os.path.join(
+                    # fileName,
+                    # os.pardir,
+                    # os.pardir,
+                    # os.pardir,
+                    # os.pardir,
+                    # "Renders",
+                    # "2dRender",
+                    # self.le_task.text(),
+                # )
+            # )
+            # if hVersion == "":
+                # hVersion = self.core.getHighestVersion(outputPath)
+                # if hVersion == None:
+                    # hVersion = fnameData["version"]
+            # outputFile = os.path.join(
+                # "shot"
+                # + "_"
+                # + fnameData["shot"]
+                # + "_"
+                # + self.le_task.text()
+                # + "_"
+                # + hVersion
+                # + extension
+            # )
+        # elif fnameData["type"] == "asset":
+            # base = self.core.getAssetPath()
+            # outputPath = os.path.abspath(
+                # os.path.join(
+                    # base,
+                    # "Renders",
+                    # "2dRender",
+                    # self.le_task.text(),
+                # )
+            # )
+            # print("---msg ", outputPath)
+            # if hVersion == "":
+                # hVersion = self.core.getHighestVersion(outputPath)
+            # outputFile = os.path.join(
+                # fnameData["asset_path"]
+                # + "_"
+                # + self.le_task.text()
+                # + "_"
+                # + hVersion
+                # + extension
+            # )
+        # else:
+            # return
+
+        # outputPath = os.path.join(outputPath, hVersion)
+        # if pComment != "":
+            # outputPath += "_" + pComment
+
+        # outputName = os.path.join(outputPath, outputFile)
+
+        # return outputName, outputPath, hVersion
+
+    @err_catcher(name=__name__)
     def exportGetOutputName(self, useVersion="next"):
         if self.le_task.text() == "":
             return
 
+        task = self.le_task.text()
         extension = self.cb_formats.currentText()
         fileName = self.core.getCurrentFileName()
-
-        if self.core.useLocalFiles:
-            if self.chb_localOutput.isChecked():
-                fileName = self.core.convertPath(fileName, target="local")
-            else:
-                fileName = self.core.convertPath(fileName, target="global")
-
-        hVersion = ""
-        pComment = self.le_comment.text()
-        if useVersion != "next":
-            hVersion = useVersion.split(self.core.filenameSeparator)[0]
-            pComment = useVersion.split(self.core.filenameSeparator)[1]
-
         fnameData = self.core.getScenefileData(fileName)
-        if fnameData["type"] == "shot":
-            outputPath = os.path.abspath(
-                os.path.join(
-                    fileName,
-                    os.pardir,
-                    os.pardir,
-                    os.pardir,
-                    os.pardir,
-                    "Renders",
-                    "2dRender",
-                    self.le_task.text(),
-                )
-            )
-            if hVersion == "":
-                hVersion = self.core.getHighestVersion(outputPath)
-                if hVersion == None:
-                    hVersion = fnameData["version"]
-            outputFile = os.path.join(
-                "shot"
-                + "_"
-                + fnameData["shot"]
-                + "_"
-                + self.le_task.text()
-                + "_"
-                + hVersion
-                + extension
-            )
-        elif fnameData["type"] == "asset":
-            base = self.core.getAssetPath()
-            outputPath = os.path.abspath(
-                os.path.join(
-                    base,
-                    "Renders",
-                    "2dRender",
-                    self.le_task.text(),
-                )
-            )
-            if hVersion == "":
-                hVersion = self.core.getHighestVersion(outputPath)
-            outputFile = os.path.join(
-                fnameData["asset_path"]
-                + "_"
-                + self.le_task.text()
-                + "_"
-                + hVersion
-                + extension
-            )
-        else:
+
+        if "type" not in fnameData:
             return
 
-        outputPath = os.path.join(outputPath, hVersion)
-        if pComment != "":
-            outputPath += "_" + pComment
+        #location = self.cb_location.currentText()
+        location = "global"
+        print("fileName", fileName)
+        useVersion = None
+        outputPathData = self.core.mediaProducts.generateMediaProductPath(
+            entity=fnameData,
+            task=task,
+            extension=extension,
+            comment=fnameData.get("comment", ""),
+            framePadding="",
+            version=useVersion if useVersion != "next" else None,
+            location=location,
+            returnDetails=True,
+            mediaType="2drenders",
+        )
 
-        outputName = os.path.join(outputPath, outputFile)
+        outputFolder = os.path.dirname(outputPathData["path"])
+        hVersion = outputPathData["version"]
 
-        return outputName, outputPath, hVersion
+        return outputPathData["path"], outputFolder, hVersion
+
 
     @err_catcher(name=__name__)
     def exportVersionToggled(self, checked):
@@ -791,16 +895,27 @@ class Prism_AfterEffects_Functions(object):
                 return
 
         ext = os.path.splitext(outputPath)[1].lower()
-
-        scpt = """
-        var resultFile = new File('""" + outputPath.replace("\\","//") + """')
-        var renderQueue = app.project.renderQueue;
-        //var sel = app.project.item(1);
-        app.activeViewer.setActive();
-        var sel = app.project.activeItem;
-        var render = renderQueue.items.add(sel);
-        render.outputModules[1].file = resultFile;
-        app.project.renderQueue.queueInAME(false);
-        """
+        
+        if self.m_encoder.isChecked():
+            scpt = """
+            var resultFile = new File('""" + outputPath.replace("\\","//") + """')
+            var renderQueue = app.project.renderQueue;
+            //var sel = app.project.item(1);
+            app.activeViewer.setActive();
+            var sel = app.project.activeItem;
+            var render = renderQueue.items.add(sel);
+            render.outputModules[1].file = resultFile;
+            app.project.renderQueue.queueInAME(false);
+            """
+        else:
+            scpt = """
+            var resultFile = new File('""" + outputPath.replace("\\","//") + """')
+            var renderQueue = app.project.renderQueue;
+            //var sel = app.project.item(1);
+            app.activeViewer.setActive();
+            var sel = app.project.activeItem;
+            var render = renderQueue.items.add(sel);
+            render.outputModules[1].file = resultFile;
+            """   
         currentFileName = self.executeAppleScript(scpt)
 
